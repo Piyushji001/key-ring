@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Security: Zeroize](https://img.shields.io/badge/Security-Zeroized_Memory-success.svg)](https://crates.io/crates/zeroize)
 
-[Features](#key-features) • [Architecture](#system-architecture) • [Security Model](#cryptographic-architecture--security-model) • [SSH & Cloud Workflows](#ssh--cloud-workflows-guide) • [Getting Started](#getting-started) • [Benchmarks](#performance-benchmarks)
+[Features](#key-features) • [Keyring Copilot](#keyring-copilot-100-offline-assistant) • [Architecture](#system-architecture) • [Security Model](#cryptographic-architecture--security-model) • [SSH & Cloud Workflows](#ssh--cloud-workflows-guide) • [Getting Started](#getting-started) • [Benchmarks](#performance-benchmarks)
 
 </div>
 
@@ -30,20 +30,61 @@ Keyring bridges high-assurance local encryption with seamless DevOps productivit
 
 ## Key Features
 
-- 🔒 **Provable Zero-Network Guarantee**: Mechanically verified in CI on every commit. No HTTP client, DNS resolver, or socket API exists in the dependency tree. The webview operates under strict `connect-src 'none'` Content Security Policy.
+- 🔒 **Provable Zero-Network Guarantee**: Mechanically verified with zero sockets, no telemetry, and no remote synchronizers. The webview operates under strict `connect-src 'none'` Content Security Policy.
+- ✦ **Keyring Copilot (100% Offline AI & Support Agent)**: In-built local assistant (`Ctrl + J`) capable of interactive connection setup wizards, one-shot natural language parsing (e.g. `ssh root@94.136.186.9 pass: secret`), root-cause troubleshooting for SSH errors, and direct vault automation — running 100% locally with zero internet dependencies.
 - 🔑 **Defense-in-Depth Cryptography**: Master password derived via **Argon2id** (calibrated per host); vault records and data keys encrypted with **XChaCha20-Poly1305** envelope encryption with record-specific Additional Authenticated Data (AAD).
 - 🚀 **One-Click Native DevOps Connections**:
   - **SSH Launcher**: Secure terminal launching with automatic private key extraction (NTFS ACL-locked via `icacls`) and password handoffs via single-use named pipes (`keyring-askpass`). Plaintext credentials are **never exposed on command-line arguments**.
   - **Secure RDP Connect**: Launches Remote Desktop sessions by securely staging credentials through the Win32 `CredWriteW` Credential Manager without exposing passwords to task lists or process logs.
-  - **Cloud & Kubernetes Shells**: Generates isolated environments for AWS, Google Cloud, Azure, and Kubernetes (`KUBECONFIG`) injecting secrets strictly through process environment blocks or bounded temp files.
-- 🛡️ **Memory Protection & Anti-Snoop Clipboard**:
+  - **Cloud & Kubernetes Shells**: Native CLI integrations for **AWS**, **Google Cloud**, **Azure**, and **Kubernetes** (`KUBECONFIG`), injecting credentials strictly through process environment blocks or bounded temp files.
+- 🛡️ **Memory Protection & Anti-Decompilation**:
   - Memory zeroized immediately on drop with `zeroize`.
-  - Plaintext secrets stay isolated within the Rust core and never cross into JavaScript memory unnecessarily.
+  - Windows release builds feature active Win32 debugger detection (`IsDebuggerPresent`) to abort execution if debuggers or reverse-engineering engines attach.
+  - Production bundles strip sourcemaps, comments, and console outputs.
   - Secure Win32 clipboard integration with SHA-256 fingerprint validation, auto-clearing timers, and clipboard history exclusion flags (`CanIncludeInClipboardHistory = 0`).
 - 📁 **Encrypted File Attachments**: Store PEM keys, certificates, VPN configs, and service account JSON with independent cryptographic envelopes and SHA-256 integrity verification.
 - ⚡ **Blazing Fast In-Memory Search**: Sub-50ms query latency across 10,000+ records with typo tolerance, fuzzy scoring, tag indexing, and recency weighting.
 - 🕒 **RFC 6238 TOTP Authenticator**: Built-in two-factor authentication codes with live countdown timers and instant clipboard copy.
 - 🔄 **Automated Snapshots & Universal Import/Export**: Debounced automated encrypted backups with rotation scheduling, plus seamless import from 1Password, Bitwarden, KeePass, and CSV.
+
+---
+
+## Keyring Copilot (100% Offline Assistant)
+
+Keyring features an **in-built local AI Copilot** designed to guide users, troubleshoot connection issues, and automate record management while strictly respecting the zero-network security model.
+
+<div align="center">
+  <sub>Open anytime via <code>Ctrl + J</code> or the <code>[ ✦ Copilot ]</code> button in the window title bar.</sub>
+</div>
+
+### What Copilot Can Do:
+
+1. **Interactive Server & Cloud Connection Wizards**:
+   - Walks users step-by-step through setting up servers and clouds: prompts for IP/Hostname $\rightarrow$ Username $\rightarrow$ Auth Type (Password vs Key) $\rightarrow$ Credentials $\rightarrow$ Generates an executable Action Card.
+   - 1-Click Actions: **`[ 🚀 Save & Connect Now ]`** (saves record and instantly launches terminal session) or **`[ 💾 Save to Vault ]`**.
+2. **One-Shot Natural Language & Connection String Parsing**:
+   - Paste raw commands or freeform connection strings:
+     ```text
+     ssh root@94.136.186.9 pass: s5i8U2jO7
+     ```
+   - Automatically parses host, port, username, and password into an instant connection Action Card.
+3. **Built-In Troubleshooting Knowledge Base**:
+   - **SSH "Wrong Password" / "Access Denied"**: Explains server-side defaults (`PermitRootLogin prohibit-password`, `PasswordAuthentication no`, Fail2ban IP bans) and provides copyable server fix commands.
+   - **Host Key Verification Errors**: Explains IP recycling/fingerprint changes and generates `ssh-keygen -R <host>` commands.
+   - **PuTTY `.ppk` Conversion**: Guides OpenSSH key conversion (`puttygen key.ppk -O private-openssh -o id_rsa`).
+   - **Cloud Shell Verification**: Explains ephemeral environment injection and verification commands (`aws sts get-caller-identity`, `az account show`, `kubectl get nodes`).
+4. **Direct Vault Automation**:
+   - Instant password generation with entropy score and 1-click clipboard copy.
+   - On-demand snapshot creation (`ipc.backupNow()`).
+   - Real-time search query filtering and direct screen navigation.
+
+### How Copilot Handles Out-of-Scope Queries:
+
+To prevent security misconfigurations and preserve zero-knowledge integrity, Copilot explicitly enforces **Zero-Trust Boundaries**:
+- **Internet / External Web Requests**: Explains the zero-network policy and provides instructions to run web/API requests in external browsers and store resulting API keys in Keyring.
+- **Lost Master Password Recovery**: Explains zero-knowledge encryption (Argon2id + XChaCha20) and directs users to snapshot history (`Settings -> Backups`).
+- **Unmonitored Remote Server Script Execution**: Explains that Keyring does not execute blind background scripts and provides a **`[ Connect ]`** button to launch an interactive, user-audited terminal.
+- **Cloud Firewall / Security Group Alterations**: Provides exact console instructions for AWS EC2 / GCP Firewall rules to open TCP port 22 safely.
 
 ---
 
@@ -252,11 +293,12 @@ key-ring/
 | Shortcut | Action |
 |---|---|
 | `Ctrl + Shift + Space` | Toggle Global Quick-Search HUD Overlay (from any app) |
+| `Ctrl + J` | Toggle Keyring Copilot (100% Offline Local Assistant) |
 | `Ctrl + L` | Instant Vault Lock & Memory Wipe |
 | `Ctrl + N` | Create New Record |
 | `Ctrl + ,` | Open Settings & Snapshot History |
 | `/` | Focus Record Search Bar |
-| `Esc` | Close Dialogs / Settings / Dismiss Overlay |
+| `Esc` | Close Dialogs / Settings / Dismiss Overlay / Close Copilot |
 
 ---
 
@@ -269,6 +311,8 @@ key-ring/
 - [x] **Phase 6**: Secure RDP (`CredWriteW`), SSH command builder, and RFC 6238 TOTP.
 - [x] **Phase 7**: Encrypted file attachments, automated backups, and 1Password/Bitwarden import.
 - [x] **Phase 7.5**: Named-pipe SSH password handoff (`keyring-askpass`) & Cloud terminal launchers.
+- [x] **Phase 8**: Multi-Cloud CLI integrations (AWS, GCP, Azure, K8s) & Anti-Decompilation hardening.
+- [x] **Phase 9**: In-built 100% Offline Keyring Copilot (Interactive wizards, NLP parsing, Troubleshooting).
 - [ ] **v1.1**: Direct SSH agent injection over Windows OpenSSH named pipe.
 - [ ] **v1.2**: Cross-platform desktop builds (macOS & Linux desktop shells).
 
