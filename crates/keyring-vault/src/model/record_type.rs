@@ -66,7 +66,17 @@ const API_KEY: &[FieldTemplate] = &[
 
 const CLOUD_SERVICE_ACCOUNT: &[FieldTemplate] = &[
     t("provider", "Provider", Text, false),
+    t("access_key_id", "Access key ID", Text, false),
+    t("secret_access_key", "Secret access key", Secret, true),
+    t("region", "Region", Text, false),
+    t("session_token", "Session token", Secret, true),
+    t("client_id", "Client ID", Text, false),
+    t("client_secret", "Client secret", Secret, true),
+    t("tenant_id", "Tenant ID", Text, false),
+    t("subscription_id", "Subscription ID", Text, false),
     t("project_id", "Project ID", Text, false),
+    t("cluster", "Cluster", Text, false),
+    t("namespace", "Namespace", Text, false),
     t("account_email", "Account email", Text, false),
     t("key_file", "Key file", Attachment, true),
     t("console_url", "Console URL", Url, false),

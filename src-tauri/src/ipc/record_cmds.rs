@@ -48,7 +48,11 @@ fn subtitle_for(
             })
         }
         RecordType::ApiKey => get("provider").or_else(|| get("key_id")),
-        RecordType::CloudServiceAccount => get("project_id").or_else(|| get("provider")),
+        RecordType::CloudServiceAccount => get("project_id")
+            .or_else(|| get("access_key_id"))
+            .or_else(|| get("cluster"))
+            .or_else(|| get("client_id"))
+            .or_else(|| get("provider")),
         RecordType::WebLogin => {
             let url = get("url");
             match (get("username"), url) {

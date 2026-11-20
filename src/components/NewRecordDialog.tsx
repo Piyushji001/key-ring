@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
+  Cloud,
   Eye,
   EyeOff,
   KeyRound,
@@ -49,6 +50,11 @@ export function NewRecordDialog({
   const [quickParsedMsg, setQuickParsedMsg] = useState<string | null>(null);
   const [authMethod, setAuthMethod] = useState<"password" | "key">("password");
 
+  // Cloud specific helpers
+  const [cloudProvider, setCloudProvider] = useState<
+    "aws" | "gcp" | "azure" | "kubernetes"
+  >("aws");
+
   const selected = types.find((t) => t.key === typeKey) ?? null;
 
   useEffect(() => {
@@ -65,6 +71,7 @@ export function NewRecordDialog({
     setQuickInput("");
     setQuickParsedMsg(null);
     setAuthMethod("password");
+    setCloudProvider("aws");
     setShowAdvanced(false);
   }, [typeKey]);
 
@@ -158,6 +165,8 @@ export function NewRecordDialog({
     const merged = { ...values };
     if (selected.key === "ssh_server") {
       merged.auth_method = authMethod;
+    } else if (selected.key === "cloud_service_account") {
+      merged.provider = cloudProvider;
     }
 
     const filled = Object.entries(merged).filter(([, v]) => v.trim() !== "");
@@ -375,6 +384,249 @@ export function NewRecordDialog({
                     </div>
                   )}
                 </>
+              ) : selected.key === "cloud_service_account" ? (
+                <>
+                  {/* Cloud Provider Tabs */}
+                  <div>
+                    <Label>Cloud Provider</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {(
+                        [
+                          ["aws", "AWS"],
+                          ["gcp", "Google Cloud"],
+                          ["azure", "Azure"],
+                          ["kubernetes", "Kubernetes"],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => {
+                            setCloudProvider(key);
+                            setValues((v) => ({ ...v, provider: key }));
+                          }}
+                          className={clsx(
+                            "py-2 px-2 text-xs rounded-control border transition-all text-center font-ui truncate",
+                            cloudProvider === key
+                              ? "border-accent bg-accent/15 text-accent font-medium shadow-sm"
+                              : "border-edge text-text-dim hover:text-text hover:bg-panel-hi",
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {cloudProvider === "aws" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>AWS Access Key ID</Label>
+                        <Input
+                          mono
+                          value={values.access_key_id ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, access_key_id: e.target.value }))
+                          }
+                          placeholder="AKIAIOSFODNN7EXAMPLE"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>
+                          AWS Secret Access Key
+                          <span className="ml-2 text-xs text-accent">encrypted</span>
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type={visibleSecrets.secret_access_key ? "text" : "password"}
+                            value={values.secret_access_key ?? ""}
+                            onChange={(e) =>
+                              setValues((v) => ({
+                                ...v,
+                                secret_access_key: e.target.value,
+                              }))
+                            }
+                            placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleSecretVisibility("secret_access_key")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text"
+                          >
+                            {visibleSecrets.secret_access_key ? (
+                              <EyeOff size={15} />
+                            ) : (
+                              <Eye size={15} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Default Region</Label>
+                        <Input
+                          mono
+                          value={values.region ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, region: e.target.value }))
+                          }
+                          placeholder="us-east-1 or ap-south-1"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {cloudProvider === "gcp" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Google Cloud Project ID</Label>
+                        <Input
+                          mono
+                          value={values.project_id ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, project_id: e.target.value }))
+                          }
+                          placeholder="my-gcp-project-123456"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Service Account Email (Optional)</Label>
+                        <Input
+                          mono
+                          value={values.account_email ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, account_email: e.target.value }))
+                          }
+                          placeholder="deployer@project.iam.gserviceaccount.com"
+                        />
+                      </div>
+
+                      <div className="rounded-control border border-edge bg-void/50 p-3 text-xs text-text-dim space-y-1">
+                        <p className="text-text font-medium flex items-center gap-1.5">
+                          <Cloud size={14} className="text-accent" />
+                          GCP Service Account Key
+                        </p>
+                        <p>
+                          Attach your Service Account key file (<code className="text-accent font-data">.json</code>) in the <strong>Attachments</strong> panel after saving. Keyring will activate it automatically when launching the shell.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {cloudProvider === "azure" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Application (Client) ID</Label>
+                        <Input
+                          mono
+                          value={values.client_id ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, client_id: e.target.value }))
+                          }
+                          placeholder="00000000-0000-0000-0000-000000000000"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>
+                          Client Secret
+                          <span className="ml-2 text-xs text-accent">encrypted</span>
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type={visibleSecrets.client_secret ? "text" : "password"}
+                            value={values.client_secret ?? ""}
+                            onChange={(e) =>
+                              setValues((v) => ({ ...v, client_secret: e.target.value }))
+                            }
+                            placeholder="Client Secret Value"
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleSecretVisibility("client_secret")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text"
+                          >
+                            {visibleSecrets.client_secret ? (
+                              <EyeOff size={15} />
+                            ) : (
+                              <Eye size={15} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Directory (Tenant) ID</Label>
+                          <Input
+                            mono
+                            value={values.tenant_id ?? ""}
+                            onChange={(e) =>
+                              setValues((v) => ({ ...v, tenant_id: e.target.value }))
+                            }
+                            placeholder="Tenant GUID"
+                          />
+                        </div>
+                        <div>
+                          <Label>Subscription ID (Optional)</Label>
+                          <Input
+                            mono
+                            value={values.subscription_id ?? ""}
+                            onChange={(e) =>
+                              setValues((v) => ({
+                                ...v,
+                                subscription_id: e.target.value,
+                              }))
+                            }
+                            placeholder="Subscription GUID"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cloudProvider === "kubernetes" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Cluster Name</Label>
+                        <Input
+                          mono
+                          value={values.cluster ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, cluster: e.target.value }))
+                          }
+                          placeholder="production-eks-cluster"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Namespace (Optional)</Label>
+                        <Input
+                          mono
+                          value={values.namespace ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, namespace: e.target.value }))
+                          }
+                          placeholder="default, production, etc."
+                        />
+                      </div>
+
+                      <div className="rounded-control border border-edge bg-void/50 p-3 text-xs text-text-dim space-y-1">
+                        <p className="text-text font-medium flex items-center gap-1.5">
+                          <Cloud size={14} className="text-accent" />
+                          Kubeconfig Attachment
+                        </p>
+                        <p>
+                          Attach your cluster config file (<code className="text-accent font-data">.yaml</code>, <code className="text-accent font-data">.kubeconfig</code>) in the <strong>Attachments</strong> panel after saving.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 /* STANDARD CLEAN LAYOUT FOR OTHER TYPES */
                 <div className="space-y-3">
@@ -483,6 +735,37 @@ export function NewRecordDialog({
                             setValues((v) => ({ ...v, jump_host: e.target.value }))
                           }
                           placeholder="jump.internal.corp"
+                        />
+                      </div>
+                    )}
+
+                    {selected.key === "cloud_service_account" && cloudProvider === "aws" && (
+                      <div>
+                        <Label>
+                          AWS Session Token (Optional / STS)
+                          <span className="ml-2 text-xs text-accent">encrypted</span>
+                        </Label>
+                        <Input
+                          type={visibleSecrets.session_token ? "text" : "password"}
+                          value={values.session_token ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, session_token: e.target.value }))
+                          }
+                          placeholder="Temporary session token from STS"
+                        />
+                      </div>
+                    )}
+
+                    {selected.key === "cloud_service_account" && (
+                      <div>
+                        <Label>Web Console URL (Optional)</Label>
+                        <Input
+                          mono
+                          value={values.console_url ?? ""}
+                          onChange={(e) =>
+                            setValues((v) => ({ ...v, console_url: e.target.value }))
+                          }
+                          placeholder="https://console.aws.amazon.com or https://console.cloud.google.com"
                         />
                       </div>
                     )}

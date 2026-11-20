@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, KeyRound, Monitor, Terminal } from "lucide-react";
+import { Cloud, ExternalLink, KeyRound, Monitor, Terminal } from "lucide-react";
 
 import { asAppError, ipc } from "../lib/ipc";
 import type { RecordDetail } from "../lib/types";
@@ -114,6 +114,37 @@ export function ActionBar({
         </Button>,
       );
     }
+  }
+
+  if (summary.recordType === "cloud_service_account") {
+    const rawProvider =
+      detail.fields.find((f) => f.name === "provider")?.value?.toLowerCase().trim() || "aws";
+    const providerMap: Record<string, { key: string; label: string }> = {
+      aws: { key: "aws", label: "AWS" },
+      amazon: { key: "aws", label: "AWS" },
+      gcp: { key: "gcp", label: "Google Cloud" },
+      google: { key: "gcp", label: "Google Cloud" },
+      azure: { key: "azure", label: "Azure" },
+      kubernetes: { key: "kubernetes", label: "Kubernetes" },
+      k8s: { key: "kubernetes", label: "Kubernetes" },
+    };
+    const info = providerMap[rawProvider] ?? { key: rawProvider, label: "Cloud" };
+
+    actions.push(
+      <Button
+        key="cloud-launch"
+        disabled={disabled || busy}
+        onClick={() =>
+          void run(async () => {
+            const result = await ipc.cloudConnect(summary.id, info.key);
+            return result.caveat ? `${result.detail} (${result.caveat})` : result.detail;
+          })
+        }
+      >
+        <Cloud size={14} strokeWidth={1.5} className="inline mr-1.5" />
+        Launch {info.label} Shell
+      </Button>,
+    );
   }
 
   const url = detail.fields.find(
