@@ -1,0 +1,147 @@
+@import "./styles/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fonts are bundled locally. There is no @import from a font CDN anywhere in
+   this project, because that would be a network request and the entire premise
+   is that this application makes none. The CSP (connect-src 'none') would
+   block it anyway.
+
+   Drop Inter and JetBrains Mono woff2 files into src/assets/fonts/ and
+   uncomment. Until then the stacks in tailwind.config.js fall back to Segoe UI
+   Variable and Cascadia Mono, both present on Windows 10/11. */
+
+/*
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: block;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
+*/
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-void text-text font-ui text-base antialiased;
+    /* A credential manager is not a document. Selecting text by accident and
+       dragging the window are both worse than not being able to. Inputs and
+       explicitly marked regions opt back in. */
+    user-select: none;
+    overflow: hidden;
+  }
+
+  input,
+  textarea,
+  [data-selectable] {
+    user-select: text;
+  }
+
+  /* Keyboard focus must always be visible - this app is operated by keyboard
+     first, and an invisible focus ring makes it unusable. */
+  :focus-visible {
+    outline: 2px solid var(--kr-accent);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--kr-text-faint);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--kr-edge-strong);
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* The 400 ms warming when the vault unlocks. Applied to <html> for the
+     duration of the transition, then removed, so nothing else in the app pays
+     for a global transition rule. */
+  .kr-warming * {
+    transition:
+      background-color 400ms ease-in-out,
+      border-color 400ms ease-in-out,
+      color 400ms ease-in-out,
+      fill 400ms ease-in-out,
+      stroke 400ms ease-in-out;
+  }
+
+  .kr-shake {
+    animation: kr-shake 140ms ease-out 1;
+  }
+
+  @keyframes kr-shake {
+    0%,
+    100% { transform: translateX(0); }
+    25%  { transform: translateX(-6px); }
+    75%  { transform: translateX(6px); }
+  }
+
+  /* Indeterminate bar for the ~1 second Argon2 derivation. The delay is
+     deliberate, so it must look deliberate. */
+  .kr-deriving {
+    position: relative;
+    overflow: hidden;
+  }
+  .kr-deriving::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--kr-accent-dim),
+      transparent
+    );
+    animation: kr-sweep 900ms ease-in-out infinite;
+  }
+  @keyframes kr-sweep {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+  }
+}
+
+/* The overlay window is transparent, so the page itself must not paint a
+   background - only the rounded panel inside it does. */
+.kr-overlay-window,
+.kr-overlay-window body,
+.kr-overlay-window #root {
+  background: transparent !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Keyring",
+  "version": "0.1.0",
+  "identifier": "com.keyring.vault",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'self'",
+      "freezePrototype": true,
+      "assetProtocol": {
+        "enable": false
+      }
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Keyring",
+        "width": 1100,
+        "height": 720,
+        "minWidth": 860,
+        "minHeight": 560,
+        "decorations": false,
+        "resizable": true,
+        "center": true,
+        "visible": true,
+        "theme": "Dark",
+        "backgroundColor": "#0B0E12"
+      },
+      {
+        "label": "overlay",
+        "title": "Keyring Search",
+        "url": "index.html",
+        "width": 680,
+        "height": 420,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "visible": false,
+        "center": true,
+        "focus": false,
+        "shadow": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "msi",
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "copyright": "Copyright (c) 2026 Keyring",
+    "category": "Utility",
+    "shortDescription": "Offline credential vault",
+    "longDescription": "An offline-only credential vault for DevOps engineers. No network capability by design.",
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
+  }
+}

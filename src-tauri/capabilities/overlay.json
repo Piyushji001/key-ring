@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "overlay",
+  "description": "The hotkey overlay. Narrower than the main window: it cannot open dialogs, and it cannot maximise or close itself - only hide.",
+  "windows": ["overlay"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:event:default"
+  ]
+}

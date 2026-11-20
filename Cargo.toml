@@ -1,0 +1,25 @@
+[workspace]
+members = ["crates/keyring-crypto", "crates/keyring-vault",
+    "crates/keyring-askpass", "src-tauri"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+rust-version = "1.77"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# Tests and the dev CLI need Argon2 to run at a sane speed even in debug
+# builds, otherwise every unlock takes tens of seconds.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.chacha20poly1305]
+opt-level = 3
+[profile.dev.package.sha2]
+opt-level = 3

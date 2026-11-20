@@ -1,0 +1,64 @@
+[package]
+name = "keyring-app"
+version = "0.1.0"
+edition = "2021"
+description = "Keyring - offline credential vault"
+authors = ["Keyring"]
+license = "MIT"
+rust-version = "1.77"
+
+[lib]
+name = "keyring_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+keyring-vault = { path = "../crates/keyring-vault" }
+keyring-crypto = { path = "../crates/keyring-crypto" }
+
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-opener = "2"
+# FR-10.6. Registers a Run key entry; starts Keyring *locked*.
+tauri-plugin-autostart = "2"
+
+rusqlite = { version = "0.31", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+zeroize = { version = "1.7", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+sha2 = "0.10"
+# RFC 6238 is built on HMAC. The HMAC and the hashes come from audited crates;
+# only the RFC's counter and truncation logic is ours. See actions/totp.rs.
+hmac = "0.12"
+sha1 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"
+
+# Clipboard ownership and the history-exclusion formats need raw Win32. There
+# is no crate-level abstraction that sets those formats, which is exactly why
+# we do it ourselves.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.56", features = [
+    "Win32_Foundation",
+    "Win32_System_DataExchange",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
+    "Win32_Security",
+    "Win32_Security_Credentials",
+    "Win32_System_SystemInformation",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_System_StationsAndDesktops",
+    "Win32_Storage",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+] }
+
+# NO networking crates. Ever. Offline by design.

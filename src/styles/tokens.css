@@ -1,0 +1,52 @@
+/* Design tokens, verbatim from UI Spec section 2.
+   Do not hardcode a colour anywhere else in the codebase. */
+
+:root[data-theme="dark"] {
+  --kr-void:        #0B0E12;
+  --kr-panel:       #141A21;
+  --kr-panel-hi:    #1B232C;
+  --kr-edge:        #232C36;
+  --kr-edge-strong: #33404D;
+
+  --kr-text:        #E4E9EF;
+  --kr-text-dim:    #8A97A6;
+  --kr-text-faint:  #5A6673;
+
+  --kr-accent:      #C99A4B;
+  --kr-accent-hi:   #DDB268;
+  --kr-accent-dim:  #6B5228;
+
+  --kr-danger:      #C2504B;
+  --kr-ok:          #4E9E7E;
+  --kr-warn:        #C99A4B;
+}
+
+:root[data-theme="light"] {
+  --kr-void:        #F5F6F7;
+  --kr-panel:       #FFFFFF;
+  --kr-panel-hi:    #EDEFF2;
+  --kr-edge:        #DCE0E5;
+  --kr-edge-strong: #B8BFC7;
+
+  --kr-text:        #1A1F26;
+  --kr-text-dim:    #5A6673;
+  --kr-text-faint:  #8A97A6;
+
+  --kr-accent:      #A17726;
+  --kr-accent-hi:   #8A6420;
+  --kr-accent-dim:  #E8DCC4;
+
+  --kr-danger:      #B03B36;
+  --kr-ok:          #2F7A5C;
+  --kr-warn:        #A17726;
+}
+
+/* THE SIGNATURE.
+   When the vault is locked, all warmth leaves the interface. This is not
+   decoration: it means the user can tell from across the room whether their
+   secrets are exposed. Set on <html> by useVault(). */
+:root[data-locked="true"] {
+  --kr-accent:      #6E7A87;
+  --kr-accent-hi:   #8A97A6;
+  --kr-accent-dim:  #2A333D;
+}

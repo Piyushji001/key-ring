@@ -1,0 +1,33 @@
+[package]
+name = "keyring-vault"
+version = "0.1.0"
+edition = "2021"
+description = "Vault format, storage and record model for Keyring. No GUI, no network, no Tauri."
+license = "MIT"
+
+[dependencies]
+keyring-crypto = { path = "../keyring-crypto" }
+rusqlite = { version = "0.31", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+ciborium = "0.2"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+zeroize = { version = "1.7", features = ["derive", "serde"] }
+thiserror = "1"
+tracing = "0.1"
+
+# Process liveness for the vault lock. Microsoft's own bindings; no networking.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.56", features = [
+    "Win32_Foundation",
+    "Win32_System_Threading",
+] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "keyring-cli"
+path = "src/bin/keyring_cli.rs"

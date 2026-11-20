@@ -1,0 +1,21 @@
+[package]
+name = "keyring-askpass"
+version = "0.1.0"
+edition = "2021"
+description = "SSH_ASKPASS helper for Keyring. Reads one password from a named pipe and prints it. Nothing else."
+license = "MIT"
+rust-version = "1.77"
+
+[[bin]]
+name = "keyring-askpass"
+path = "src/main.rs"
+
+# One dependency, and it is the one that wipes the buffer.
+#
+# Deliberately no clap, no anyhow, no windows crate. This binary is small
+# enough to read in full in two minutes, and that is the point of it.
+[dependencies]
+zeroize = "1.7"
+
+[package.metadata.keyring]
+audit-note = "Prints a secret to stdout by design. Any change here needs review."
