@@ -29,6 +29,24 @@ use super::PlatformOps;
 
 pub struct WindowsPlatform;
 
+impl WindowsPlatform {
+    /// Check whether a debugger or dynamic analysis tool is attached.
+    /// Returns false in debug builds so developers are never blocked.
+    pub fn is_debugger_present() -> bool {
+        #[cfg(all(target_os = "windows", not(debug_assertions)))]
+        {
+            #[allow(unsafe_code)]
+            unsafe {
+                windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool()
+            }
+        }
+        #[cfg(any(not(target_os = "windows"), debug_assertions))]
+        {
+            false
+        }
+    }
+}
+
 #[cfg(target_os = "windows")]
 impl PlatformOps for WindowsPlatform {
     fn idle_millis(&self) -> Option<u64> {
@@ -48,22 +66,6 @@ impl PlatformOps for WindowsPlatform {
             }
             // GetTickCount wraps every 49.7 days; wrapping_sub handles it.
             Some(GetTickCount().wrapping_sub(info.dwTime) as u64)
-        }
-    }
-
-    /// Check whether a debugger or dynamic analysis tool is attached.
-    /// Returns false in debug builds so developers are never blocked.
-    pub fn is_debugger_present() -> bool {
-        #[cfg(all(target_os = "windows", not(debug_assertions)))]
-        {
-            #[allow(unsafe_code)]
-            unsafe {
-                windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool()
-            }
-        }
-        #[cfg(any(not(target_os = "windows"), debug_assertions))]
-        {
-            false
         }
     }
 
