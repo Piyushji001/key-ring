@@ -63,7 +63,24 @@ export function ActionBar({
   if (summary.recordType === "ssh_server" && has("host")) {
     actions.push(
       <Button
+        key="ssh-connect"
+        disabled={disabled || busy}
+        onClick={() =>
+          void run(async () => {
+            const result = await ipc.sshConnect(summary.id, keyAttachment?.id);
+            return result.caveat ? `${result.detail} (${result.caveat})` : result.detail;
+          })
+        }
+      >
+        <Terminal size={14} strokeWidth={1.5} className="inline mr-1.5" />
+        Connect
+      </Button>,
+    );
+
+    actions.push(
+      <Button
         key="ssh"
+        variant="ghost"
         disabled={disabled || busy}
         onClick={() =>
           void run(async () => {
@@ -72,7 +89,6 @@ export function ActionBar({
           })
         }
       >
-        <Terminal size={14} strokeWidth={1.5} className="inline mr-1.5" />
         Copy SSH command
       </Button>,
     );

@@ -84,6 +84,11 @@ pub fn run() {
         ))
         .manage(AppState::new())
         .setup(|app| {
+            // Anti-reverse engineering & debugger detection for release builds
+            if crate::platform::windows::WindowsPlatform::is_debugger_present() {
+                std::process::exit(0);
+            }
+
             init_logging(app.handle());
 
             if let Some(state) = app.try_state::<AppState>() {

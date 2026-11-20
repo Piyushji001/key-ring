@@ -51,6 +51,22 @@ impl PlatformOps for WindowsPlatform {
         }
     }
 
+    /// Check whether a debugger or dynamic analysis tool is attached.
+    /// Returns false in debug builds so developers are never blocked.
+    pub fn is_debugger_present() -> bool {
+        #[cfg(all(target_os = "windows", not(debug_assertions)))]
+        {
+            #[allow(unsafe_code)]
+            unsafe {
+                windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool()
+            }
+        }
+        #[cfg(any(not(target_os = "windows"), debug_assertions))]
+        {
+            false
+        }
+    }
+
     fn workstation_locked(&self) -> Option<bool> {
         #[allow(unsafe_code)] // Opens a desktop handle and closes it.
         unsafe {

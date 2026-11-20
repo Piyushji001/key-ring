@@ -59,9 +59,12 @@ export function RecordList({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Search  ·  type: folder: tag:"
-            className="pl-9 h-9"
+            className="pl-9 pr-8 h-9"
             aria-label="Search records"
           />
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+            <Kbd>/</Kbd>
+          </span>
         </div>
       </div>
 

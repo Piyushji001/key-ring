@@ -14,6 +14,11 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
+  esbuild: {
+    // Strip debug statements and comments in production builds to prevent code inspection
+    drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+    legalComments: "none",
+  },
   build: {
     // WebView2 on Windows 10/11 is modern; no legacy transpilation needed.
     target: "chrome110",
