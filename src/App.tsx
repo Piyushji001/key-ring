@@ -18,12 +18,14 @@ export default function App() {
     useVault();
   const [mode, setMode] = useState<"unlock" | "setup">("unlock");
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   // Ctrl+L locks from anywhere. The one shortcut that must never fail.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey && e.key.toLowerCase() === "l") {
         e.preventDefault();
+        setCopilotOpen(false);
         void lock();
       }
     }
@@ -47,11 +49,20 @@ export default function App() {
       <TitleBar
         locked={status.locked}
         readOnly={status.readOnly}
-        onLock={() => void lock()}
+        copilotOpen={copilotOpen}
+        onToggleCopilot={() => setCopilotOpen((v) => !v)}
+        onLock={() => {
+          setCopilotOpen(false);
+          void lock();
+        }}
       />
 
       {!status.locked ? (
-        <VaultWindow status={status} />
+        <VaultWindow
+          status={status}
+          copilotOpen={copilotOpen}
+          setCopilotOpen={setCopilotOpen}
+        />
       ) : mode === "setup" ? (
         <Setup
           busy={busy}

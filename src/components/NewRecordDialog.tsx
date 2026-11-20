@@ -22,12 +22,18 @@ export function NewRecordDialog({
   types,
   defaultFolder,
   folders,
+  initialType = null,
+  initialTitle = "",
+  initialValues = {},
   onCancel,
   onCreate,
 }: {
   types: RecordTypeInfo[];
   defaultFolder: string;
   folders: string[];
+  initialType?: string | null;
+  initialTitle?: string;
+  initialValues?: Record<string, string>;
   onCancel: () => void;
   onCreate: (
     recordType: string,
@@ -37,23 +43,27 @@ export function NewRecordDialog({
     values: [string, string][],
   ) => void;
 }) {
-  const [typeKey, setTypeKey] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
+  const [typeKey, setTypeKey] = useState<string | null>(initialType ?? null);
+  const [title, setTitle] = useState(initialTitle ?? "");
   const [folder, setFolder] = useState(defaultFolder);
   const [tags, setTags] = useState("");
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(initialValues ?? {});
   const [visibleSecrets, setVisibleSecrets] = useState<Record<string, boolean>>({});
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // SSH specific helpers
   const [quickInput, setQuickInput] = useState("");
   const [quickParsedMsg, setQuickParsedMsg] = useState<string | null>(null);
-  const [authMethod, setAuthMethod] = useState<"password" | "key">("password");
+  const [authMethod, setAuthMethod] = useState<"password" | "key">(
+    initialValues?.auth_method === "key" ? "key" : "password",
+  );
 
   // Cloud specific helpers
   const [cloudProvider, setCloudProvider] = useState<
     "aws" | "gcp" | "azure" | "kubernetes"
-  >("aws");
+  >(
+    (initialValues?.provider as "aws" | "gcp" | "azure" | "kubernetes") || "aws",
+  );
 
   const selected = types.find((t) => t.key === typeKey) ?? null;
 
@@ -65,8 +75,13 @@ export function NewRecordDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
 
-  // Reset states when changing type
+  // Reset states when changing type (skipping initial mount)
+  const isFirstRender = useState(true);
   useEffect(() => {
+    if (isFirstRender[0]) {
+      isFirstRender[1](false);
+      return;
+    }
     setValues({});
     setQuickInput("");
     setQuickParsedMsg(null);

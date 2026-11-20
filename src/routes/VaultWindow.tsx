@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { CopilotDrawer } from "../components/CopilotDrawer";
 import { DetailPane } from "../components/DetailPane";
 import { NewRecordDialog } from "../components/NewRecordDialog";
 import { RecordList } from "../components/RecordList";
@@ -11,11 +12,33 @@ import { ipc } from "../lib/ipc";
 import type { VaultStatus } from "../lib/types";
 
 /** The three-pane main window (UI Spec section 4). */
-export function VaultWindow({ status }: { status: VaultStatus }) {
+export function VaultWindow({
+  status,
+  copilotOpen,
+  setCopilotOpen,
+}: {
+  status: VaultStatus;
+  copilotOpen?: boolean;
+  setCopilotOpen?: (open: boolean | ((prev: boolean) => boolean)) => void;
+}) {
   const r = useRecords(!status.locked);
   const [creating, setCreating] = useState(false);
+  const [initialRecordData, setInitialRecordData] = useState<{
+    type?: string | null;
+    title?: string;
+    values?: Record<string, string>;
+  } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [localCopilotOpen, setLocalCopilotOpen] = useState(false);
   const toast = useClipboardToast();
+
+  const isCopilotOpen = copilotOpen !== undefined ? copilotOpen : localCopilotOpen;
+  const toggleCopilot = setCopilotOpen
+    ? () => setCopilotOpen((v: boolean) => !v)
+    : () => setLocalCopilotOpen((v) => !v);
+  const closeCopilot = setCopilotOpen
+    ? () => setCopilotOpen(false)
+    : () => setLocalCopilotOpen(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -27,12 +50,20 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
         e.preventDefault();
         setCreating(true);
       }
+      if (e.ctrlKey && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        toggleCopilot();
+      }
       if (e.ctrlKey && e.key === ",") {
         e.preventDefault();
         setShowSettings(true);
       }
       if (e.key === "Escape" && !typing) {
-        setShowSettings(false);
+        if (isCopilotOpen) {
+          closeCopilot();
+        } else {
+          setShowSettings(false);
+        }
       }
       if (e.key === "/" && !typing) {
         e.preventDefault();
@@ -43,7 +74,7 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [isCopilotOpen, toggleCopilot, closeCopilot]);
 
   const currentFolder = r.selection.kind === "folder" ? r.selection.key : "";
 
@@ -56,7 +87,7 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
   }
 
   return (
-    <div className="flex-1 flex min-h-0">
+    <div className="flex-1 flex min-h-0 relative">
       <Sidebar
         data={r.sidebar}
         selection={r.selection}
@@ -64,6 +95,7 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
           r.setQuery("");
           r.setSelection(s);
         }}
+        onOpenCopilot={toggleCopilot}
       />
 
       <RecordList
@@ -112,9 +144,16 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
           types={r.types}
           defaultFolder={currentFolder}
           folders={r.sidebar?.folders.map((f) => f.key) ?? []}
-          onCancel={() => setCreating(false)}
+          initialType={initialRecordData?.type}
+          initialTitle={initialRecordData?.title}
+          initialValues={initialRecordData?.values}
+          onCancel={() => {
+            setCreating(false);
+            setInitialRecordData(null);
+          }}
           onCreate={(type, title, folder, tags, values) => {
             setCreating(false);
+            setInitialRecordData(null);
             void r.mutate(async () => {
               const id = await ipc.createRecord(type, title, folder, tags, values);
               r.setSelectedId(id);
@@ -122,6 +161,23 @@ export function VaultWindow({ status }: { status: VaultStatus }) {
           }}
         />
       )}
+
+      <CopilotDrawer
+        isOpen={isCopilotOpen}
+        onClose={closeCopilot}
+        types={r.types}
+        onOpenNewRecord={(type, values, title) => {
+          setInitialRecordData({ type, values, title });
+          setCreating(true);
+        }}
+        onOpenSettings={() => setShowSettings(true)}
+        onSearch={(query) => r.setQuery(query)}
+        onRecordCreated={(id) => {
+          void r.mutate(async () => {
+            r.setSelectedId(id);
+          });
+        }}
+      />
 
       <ClipboardToast status={toast.status} onDismiss={toast.clear} />
 

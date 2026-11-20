@@ -1,5 +1,5 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Lock, Minus, Square, X } from "lucide-react";
+import { Lock, Minus, Sparkles, Square, X } from "lucide-react";
 
 import { Kbd } from "./ui";
 
@@ -11,10 +11,14 @@ import { Kbd } from "./ui";
 export function TitleBar({
   locked,
   readOnly,
+  copilotOpen,
+  onToggleCopilot,
   onLock,
 }: {
   locked: boolean;
   readOnly: boolean;
+  copilotOpen?: boolean;
+  onToggleCopilot?: () => void;
   onLock: () => void;
 }) {
   const win = getCurrentWindow();
@@ -39,6 +43,22 @@ export function TitleBar({
       )}
 
       <div className="flex-1" />
+
+      {!locked && onToggleCopilot && (
+        <button
+          onClick={onToggleCopilot}
+          title="Toggle Keyring Copilot (Ctrl+J)"
+          className={`h-7 px-2.5 flex items-center gap-1.5 rounded-control text-xs font-medium transition-colors duration-100 ${
+            copilotOpen
+              ? "bg-accent/20 text-accent border border-accent/40"
+              : "text-text-dim hover:text-text hover:bg-panel-hi"
+          }`}
+        >
+          <Sparkles size={13} className={copilotOpen ? "text-accent animate-pulse" : "text-accent"} />
+          <span>Copilot</span>
+          <Kbd>Ctrl J</Kbd>
+        </button>
+      )}
 
       {!locked && (
         <button

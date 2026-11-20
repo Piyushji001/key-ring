@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Folder, Hash, Star, Trash2, Layers, LucideIcon } from "lucide-react";
+import { Folder, Hash, Star, Trash2, Layers, LucideIcon, Sparkles } from "lucide-react";
 
 import { iconFor } from "../lib/recordTypes";
 import type { Selection, SidebarData } from "../lib/types";
@@ -15,85 +15,103 @@ export function Sidebar({
   data,
   selection,
   onSelect,
+  onOpenCopilot,
 }: {
   data: SidebarData | null;
   selection: Selection;
   onSelect: (s: Selection) => void;
+  onOpenCopilot?: () => void;
 }) {
   const isActive = (s: Selection) =>
     s.kind === selection.kind &&
     ("key" in s && "key" in selection ? s.key === selection.key : true);
 
   return (
-    <nav className="w-[240px] shrink-0 h-full overflow-y-auto bg-panel border-r border-edge py-3">
-      <Section>
-        <Item
-          icon={Layers}
-          label="All records"
-          count={data?.total}
-          active={isActive({ kind: "all" })}
-          onClick={() => onSelect({ kind: "all" })}
-        />
-        <Item
-          icon={Star}
-          label="Favorites"
-          count={data?.favorites}
-          active={isActive({ kind: "favorites" })}
-          onClick={() => onSelect({ kind: "favorites" })}
-        />
-        <Item
-          icon={Trash2}
-          label="Trash"
-          count={data?.trash}
-          active={isActive({ kind: "trash" })}
-          onClick={() => onSelect({ kind: "trash" })}
-        />
-      </Section>
-
-      {data && data.types.length > 0 && (
-        <Section title="Types">
-          {data.types.map((t) => (
-            <Item
-              key={t.key}
-              icon={iconFor(t.key)}
-              label={t.label}
-              count={t.count}
-              active={isActive({ kind: "type", key: t.key })}
-              onClick={() => onSelect({ kind: "type", key: t.key })}
-            />
-          ))}
+    <nav className="w-[240px] shrink-0 h-full flex flex-col justify-between bg-panel border-r border-edge py-3">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <Section>
+          <Item
+            icon={Layers}
+            label="All records"
+            count={data?.total}
+            active={isActive({ kind: "all" })}
+            onClick={() => onSelect({ kind: "all" })}
+          />
+          <Item
+            icon={Star}
+            label="Favorites"
+            count={data?.favorites}
+            active={isActive({ kind: "favorites" })}
+            onClick={() => onSelect({ kind: "favorites" })}
+          />
+          <Item
+            icon={Trash2}
+            label="Trash"
+            count={data?.trash}
+            active={isActive({ kind: "trash" })}
+            onClick={() => onSelect({ kind: "trash" })}
+          />
         </Section>
-      )}
 
-      {data && data.folders.length > 0 && (
-        <Section title="Folders">
-          {data.folders.map((f) => (
-            <Item
-              key={f.key}
-              icon={Folder}
-              label={f.label}
-              count={f.count}
-              indent={f.key.split("/").length - 1}
-              active={isActive({ kind: "folder", key: f.key })}
-              onClick={() => onSelect({ kind: "folder", key: f.key })}
-            />
-          ))}
-        </Section>
-      )}
+        {data && data.types.length > 0 && (
+          <Section title="Types">
+            {data.types.map((t) => (
+              <Item
+                key={t.key}
+                icon={iconFor(t.key)}
+                label={t.label}
+                count={t.count}
+                active={isActive({ kind: "type", key: t.key })}
+                onClick={() => onSelect({ kind: "type", key: t.key })}
+              />
+            ))}
+          </Section>
+        )}
 
-      {data && data.tags.length > 0 && (
-        <Section title="Tags">
-          {data.tags.map((t) => (
-            <Item
-              key={t.key}
-              icon={Hash}
-              label={t.label}
-              count={t.count}
-              active={isActive({ kind: "tag", key: t.key })}
-              onClick={() => onSelect({ kind: "tag", key: t.key })}
-            />
-          ))}
-        </Section>
+        {data && data.folders.length > 0 && (
+          <Section title="Folders">
+            {data.folders.map((f) => (
+              <Item
+                key={f.key}
+                icon={Folder}
+                label={f.label}
+                count={f.count}
+                indent={f.key.split("/").length - 1}
+                active={isActive({ kind: "folder", key: f.key })}
+                onClick={() => onSelect({ kind: "folder", key: f.key })}
+              />
+            ))}
+          </Section>
+        )}
+
+        {data && data.tags.length > 0 && (
+          <Section title="Tags">
+            {data.tags.map((t) => (
+              <Item
+                key={t.key}
+                icon={Hash}
+                label={t.label}
+                count={t.count}
+                active={isActive({ kind: "tag", key: t.key })}
+                onClick={() => onSelect({ kind: "tag", key: t.key })}
+              />
+            ))}
+          </Section>
+        )}
+      </div>
+
+      {onOpenCopilot && (
+        <div className="pt-2 px-3 border-t border-edge">
+          <button
+            onClick={onOpenCopilot}
+            className="w-full h-8 px-2.5 flex items-center gap-2 rounded-control text-xs font-medium text-accent hover:bg-accent/15 border border-accent/25 hover:border-accent/40 transition-colors"
+            title="Open Keyring Copilot (Ctrl+J)"
+          >
+            <Sparkles size={14} className="text-accent" />
+            <span>Keyring Copilot</span>
+            <span className="ml-auto text-[10px] text-text-faint font-data">Ctrl J</span>
+          </button>
+        </div>
       )}
     </nav>
   );
